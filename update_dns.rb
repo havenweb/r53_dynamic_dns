@@ -1,10 +1,18 @@
 #!/usr/bin/env ruby
 require 'aws-sdk-route53'
 
+def main_domain(domain_url)
+  url_parts = domain_url.split(".")
+  if (url_parts.size > 3) or (url_parts.size < 2)
+    raise("invalid domain: #{domain_url}")
+  end
+  "#{url_parts[-2]}.#{url_parts[-1]}"
+end
+
 def update_ip(domain, new_ip_addr)
   client = Aws::Route53::Client.new
   hosted_zones = client.list_hosted_zones.hosted_zones
-  domain_zones = hosted_zones.select{|zone| zone.name.start_with? domain}
+  domain_zones = hosted_zones.select{|zone| zone.name.start_with? main_domain(domain)}
   if domain_zones.size != 1
     raise "Did not find exactly one hosted zone for domain #{domain}.  Found: #{domain_zones}"
   end
